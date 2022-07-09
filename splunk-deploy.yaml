@@ -1,0 +1,57 @@
+apiVersion: enterprise.splunk.com/v2
+kind: Standalone
+metadata:
+  name: s1
+  namespace: splunk
+  finalizers:
+  - enterprise.splunk.com/delete-pvc
+spec:
+  replicas: 1
+  appRepo:
+    appsRepoPollIntervalSeconds: 600
+    defaults:
+      volumeName: volume_app_repo
+      scope: local
+    appSources:
+      - name: adminApps
+        location: admin-apps/
+      - name: searchApps
+        location: search-apps/
+    volumes:
+      - name: volume_app_repo
+        storageType: s3
+        provider: aws
+        path: splunk-apps-bucket/
+        endpoint: https://s3.us-east-1.amazonaws.com
+        secretRef: s3-secret
+  livenessInitialDelaySeconds: 300
+  readinessInitialDelaySeconds: 20
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: eks.amazonaws.com/nodegroup
+            operator: In
+            values:
+            - splunk
+        topologyKey: "kubernetes.io/hostname"
+  volumes:
+    - name: licenses
+      configMap:
+        name: splunk-licenses
+  licenseUrl: /mnt/licenses/Splunk.license
+  smartstore:
+    defaults:
+      volumeName: s2s3_vol
+    indexes:
+      - name: cluster_metadata
+      - name: cluster_metrics
+      - name: cluster_events
+      - name: ethereum
+      - name: _internal
+    volumes:
+      - name: s2s3_vol
+        path: s2s3bucket
+        endpoint: https://s3.us-east-1.amazonaws.com
+        secretRef: s3-secret

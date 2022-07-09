@@ -1,0 +1,52 @@
+# An example of ClusterConfig object using an existing VPC:
+--- 
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: aws-eks
+  region: us-east-1
+
+vpc:
+  cidr: "192.168.0.0/16"
+  id: "vpc-06c3f57ebdc6694a2"
+  subnets:
+    private:
+      us-east-1a:
+          id: "subnet-04b3f43de827b0a85"
+      us-east-1c:
+          id: "subnet-04c15a5ac119afd65"
+
+managedNodeGroups:
+  - name: ng-kovan
+    instanceType: t2.small
+    labels:
+      node-class: "kovan"
+    minSize: 1
+    maxSize: 3
+    desiredCapacity: 2
+    volumeSize: 20
+    volumeEncrypted: true
+    privateNetworking: true
+    ssh:
+      enableSsm: true
+  - name: ng-splunk
+    instanceType: c4.large
+    labels:
+      node-class: "splunk"
+    desiredCapacity: 1
+    volumeSize: 20
+    volumeEncrypted: true
+    privateNetworking: true
+    ssh:
+      enableSsm: true
+  # - name: ng-rinkeby
+  #   instanceType: t2.small
+  #   labels:
+  #     node-class: "rinkeby"
+  #   desiredCapacity: 2
+  #   volumeSize: 20
+  #   volumeEncrypted: true
+  #   privateNetworking: true
+  #   ssh:
+  #     enableSsm: true
